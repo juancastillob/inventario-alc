@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>📸 Inventario Profesional - El Paso Guamasa</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+            color: white;
+            padding: 12px 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 10px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-bottom: 2px solid #fcd34d;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #666;
+        }
+
+        .tab.active {
+            color: #b45309;
+            border-bottom-color: #b45309;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        /* Camera View */
+        .camera-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .camera-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #camera {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-controls {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: #000;
+            z-index: 100;
+        }
+
+        .btn-capture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
+            border: 5px solid white;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(255, 75, 0, 0.8);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            padding: 0;
+        }
+
+        .btn-capture:active {
+            transform: scale(0.9);
+        }
+
+        /* Edit View */
+        .edit-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .captured-image {
+            width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #fcd34d;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            font-size: 12px;
+            color: #1f2937;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 2px solid #fcd34d;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #b45309;
+            background: #fffbeb;
+        }
+
+        .form-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:active {
+            transform: scale(0.95);
+        }
+
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-message.loading {
+            background: #fef08a;
+            color: #854d0e;
+        }
+
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-message.hidden {
+            display: none;
+        }
+
+        /* Inventory View */
+        .inventory-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .inventory-header {
+            padding: 12px 16px;
+            background: #faf8f3;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .inventory-header h2 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .inventory-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .inventory-stat {
+            padding: 6px 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 11px;
+            border-left: 3px solid #fcd34d;
+        }
+
+        .inventory-stat-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #b45309;
+        }
+
+        .inventory-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .inventory-item {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #b45309;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .inventory-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inventory-item-name {
+            font-weight: 700;
+            font-size: 13px;
+            color: #1f2937;
+            word-break: break-word;
+            margin-bottom: 3px;
+        }
+
+        .inventory-item-code {
+            font-size: 11px;
+            color: #6b7280;
+            font-family: monospace;
+        }
+
+        .inventory-item-qty {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+        }
+
+        .inventory-item-qty-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #22c55e;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .inventory-item-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+            font-size: 13px;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+            color: white;
+            padding: 12px 16px;
+            text-align: center;
+            flex-shrink: 0;
+            border-top: 2px solid #fcd34d;
+        }
+
+        .footer p {
+            font-size: 11px;
+            margin: 3px 0;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-export:active {
+            transform: scale(0.95);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .inventory-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .inventory-list::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .inventory-list::-webkit-scrollbar-thumb {
+            background: #d4a574;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📸 Inventario Profesional</h1>
+            <p>El Paso Guamasa - Fotografía y unifica botellas</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('camera')">📷 FOTOGRAFIAR</div>
+            <div class="tab" onclick="switchTab('inventory')">📊 INVENTARIO</div>
+        </div>
+
+        <!-- Camera View -->
+        <div class="view active" id="cameraView">
+            <div class="camera-section">
+                <div class="camera-wrapper">
+                    <video id="camera" autoplay playsinline muted></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="camera-controls">
+                    <button class="btn-capture" onclick="capturePhoto()">📸</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit View (Hidden initially) -->
+        <div class="view" id="editView">
+            <div class="edit-section">
+                <img id="capturedImg" class="captured-image" />
+                
+                <div id="statusMessage" class="status-message loading">
+                    Analizando código de barras...
+                </div>
+
+                <div class="form-group">
+                    <label>📦 Código de Barras</label>
+                    <input type="text" id="editCode" placeholder="Código (editable)">
+                </div>
+
+                <div class="form-group">
+                    <label>🍾 Nombre del Producto</label>
+                    <input type="text" id="editName" placeholder="Nombre (editable)">
+                </div>
+
+                <div class="form-group">
+                    <label>📊 Cantidad Física</label>
+                    <input type="number" id="editQty" placeholder="Cantidad" min="1" value="1">
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn-save" onclick="saveProduct()">✅ GUARDAR</button>
+                    <button class="btn-cancel" onclick="cancelEdit()">❌ CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory View -->
+        <div class="view" id="inventoryView">
+            <div class="inventory-section">
+                <div class="inventory-header">
+                    <h2>Toma Física Unificada</h2>
+                    <div class="inventory-stats">
+                        <div class="inventory-stat">
+                            SKUs: <span class="inventory-stat-value" id="totalSkus">0</span>
+                        </div>
+                        <div class="inventory-stat">
+                            Botellas: <span class="inventory-stat-value" id="totalBotellas">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inventory-list" id="inventoryList">
+                    <div class="empty-state">Sin elementos aún. Fotografía botellas.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p id="footerText">Listo para fotografiar</p>
+            <button class="btn-export" onclick="exportCSV()">📥 DESCARGAR CSV</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const ALCOHOLES = {
+            '12323': 'GINEBRA STATUS INDICA TUNOS 70cl 40%',
+            '13430': 'RON PLANTATION XO 20 AÑOS 70cl 40%',
+            '1423': 'LICOR MELON BOLS 700ML',
+            '1610': 'TEQUILA PATRON CAFE 70cl.',
+            '244743': 'VINO TINTO COSECHERO 75cl.',
+            '3018333000410': 'CHAMPAGNE PIPER HEIDSIECK 200cl 12%',
+            '3043709000886': 'CHAMPAGNE MUMM ICE XTRA 75cl',
+            '487': 'BRANDY JAIME I 70cl.',
+            '5018481022003': 'WHISKY TOMATIN LEGACY 70CL 43º',
+            '5018481100213': 'WHISKY TOMATIN 12 AÑOS 70cl 43º',
+            '5114': 'WHISKY BALLANTINES 1L.',
+            '5903': 'RON DIPLOMATICO RESERVA EXCLUSIVA 70cl.',
+            '801195': 'WHISKY TEANINICH 8 AÑOS 70cl 60,3% SR26',
+            '8148': 'RON CAMAGEY BLANCO 1L.',
+            '1234567890123': 'VODKA SMIRNOFF 70CL',
+            '9876543210987': 'RON HAVANA CLUB AÑEJO 7 AÑOS 75CL',
+            '5555555555555': 'VINO BLANCO MARQUÉS DE RISCAL 75CL',
+            '6666666666666': 'CERVEZA ESTRELLA DAMM PACK 6x330ML',
+            '7777777777777': 'RON BARCELÓ GRAN AÑEJO 70CL',
+            '8888888888888': 'WHISKY MACALLAN 18 AÑOS 70CL'
+        };
+
+        let scannedItems = [];
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            initCamera();
+            updateInventoryStats();
+        });
+
+        // ==================== CAMERA ====================
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                document.getElementById('camera').srcObject = stream;
+            } catch (err) {
+                alert('Error de cámara: ' + err.name);
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg');
+            document.getElementById('capturedImg').src = imageData;
+            switchTab('edit');
+            analyzeBarcode(canvas);
+        }
+
+        // ==================== BARCODE DETECTION ====================
+        function analyzeBarcode(canvas) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.className = 'status-message loading';
+            statusEl.textContent = 'Analizando código de barras...';
+
+            Quagga.decodeSingle({
+                src: canvas.toDataURL('image/jpeg'),
+                numOfWorkers: 1,
+                inputStream: {
+                    size: 800
+                },
+                decoder: {
+                    readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'code_39_reader', 'upc_reader']
+                }
+            }, (result) => {
+                if (result && result.codeResult) {
+                    const code = result.codeResult.code;
+                    const productName = ALCOHOLES[code] || 'Producto desconocido';
+                    
+                    document.getElementById('editCode').value = code;
+                    document.getElementById('editName').value = productName;
+                    
+                    statusEl.className = 'status-message success';
+                    statusEl.textContent = '✅ Código detectado: ' + code;
+                } else {
+                    statusEl.className = 'status-message error';
+                    statusEl.textContent = '❌ No se detectó código. Edita manualmente.';
+                }
+
+                setTimeout(() => {
+                    statusEl.className = 'status-message hidden';
+                }, 2000);
+            });
+        }
+
+        // ==================== EDIT ====================
+        function saveProduct() {
+            const code = document.getElementById('editCode').value.trim();
+            const name = document.getElementById('editName').value.trim();
+            const qty = parseInt(document.getElementById('editQty').value) || 1;
+
+            if (!code || !name) {
+                alert('Completa código y nombre');
+                return;
+            }
+
+            const existing = scannedItems.find(i => i.codigo === code);
+            if (existing) {
+                existing.cantidad += qty;
+            } else {
+                scannedItems.push({
+                    codigo: code,
+                    nombre: name,
+                    cantidad: qty
+                });
+            }
+
+            saveToStorage();
+            updateInventoryStats();
+            renderInventory();
+            cancelEdit();
+            playBeep();
+        }
+
+        function cancelEdit() {
+            switchTab('camera');
+            document.getElementById('editCode').value = '';
+            document.getElementById('editName').value = '';
+            document.getElementById('editQty').value = '1';
+        }
+
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.value = 800;
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.1);
+        }
+
+        // ==================== STORAGE ====================
+        function saveToStorage() {
+            localStorage.setItem('inventoryData', JSON.stringify(scannedItems));
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('inventoryData');
+            if (saved) {
+                try {
+                    scannedItems = JSON.parse(saved);
+                    renderInventory();
+                } catch (e) {
+                    console.error('Error:', e);
+                }
+            }
+        }
+
+        // ==================== INVENTORY ====================
+        function updateInventoryStats() {
+            const totalSkus = scannedItems.length;
+            const totalBotellas = scannedItems.reduce((sum, i) => sum + i.cantidad, 0);
+
+            document.getElementById('totalSkus').textContent = totalSkus;
+            document.getElementById('totalBotellas').textContent = totalBotellas;
+            document.getElementById('footerText').textContent = `${totalSkus} productos | ${totalBotellas} botellas`;
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('inventoryList');
+
+            if (scannedItems.length === 0) {
+                container.innerHTML = '<div class="empty-state">Sin elementos aún. Fotografía botellas.</div>';
+                return;
+            }
+
+            container.innerHTML = scannedItems
+                .sort((a, b) => b.cantidad - a.cantidad)
+                .map((item, idx) => `
+                    <div class="inventory-item">
+                        <div class="inventory-item-info">
+                            <div class="inventory-item-name">${item.nombre.substring(0, 45)}</div>
+                            <div class="inventory-item-code">📦 ${item.codigo}</div>
+                        </div>
+                        <div class="inventory-item-qty">
+                            <span class="inventory-item-qty-value">${item.cantidad}</span>
+                            <button class="inventory-item-btn" onclick="removeProduct('${item.codigo}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function removeProduct(code) {
+            scannedItems = scannedItems.filter(i => i.codigo !== code);
+            saveToStorage();
+            updateInventoryStats();
+            renderInventory();
+        }
+
+        // ==================== EXPORT ====================
+        function exportCSV() {
+            if (scannedItems.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const headers = ['Código', 'Descripción', 'Cantidad Física'];
+            const rows = scannedItems.map(item => [
+                item.codigo,
+                `"${item.nombre}"`,
+                item.cantidad
+            ]);
+
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `inventario-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+        }
+
+        // ==================== TABS ====================
+        function switchTab(tab) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            if (tab === 'camera') {
+                document.getElementById('cameraView').classList.add('active');
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+            } else if (tab === 'inventory') {
+                document.getElementById('inventoryView').classList.add('active');
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                updateInventoryStats();
+                renderInventory();
+            } else if (tab === 'edit') {
+                document.getElementById('editView').classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
