@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🍾 Escaneo Profesional - El Paso Guamasa</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 10px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #fcd34d;
+            flex-shrink: 0;
+        }
+
+        .stat-box {
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .stat-box .number {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .stat-box .label {
+            font-size: 9px;
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
+        /* Scanner */
+        .scanner-wrapper {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #scanner {
+            width: 100%;
+            height: 100%;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 300px;
+            border: 3px solid #fbbf24;
+            border-radius: 12px;
+            box-shadow: inset 0 0 30px rgba(251, 191, 36, 0.2),
+                        0 0 30px rgba(251, 191, 36, 0.3);
+            pointer-events: none;
+        }
+
+        .scanner-guides {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .guide-line {
+            position: absolute;
+            background: #fbbf24;
+            opacity: 0.5;
+        }
+
+        .guide-horizontal {
+            width: 100%;
+            height: 2px;
+            top: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .scanning-text {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Detected Code */
+        .detected-box {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .detected-box.hidden {
+            display: none;
+        }
+
+        .detected-box.success {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .product-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .product-code {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 15px;
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .quantity-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #fcd34d;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: #b45309;
+            background: #fffbeb;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .btn-cancel:active {
+            transform: scale(0.95);
+        }
+
+        /* List */
+        .list-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 280px;
+            max-height: 60%;
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 2px solid #fbbf24;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .list-container.hidden {
+            display: none;
+        }
+
+        .list-item {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            color: white;
+            font-size: 11px;
+        }
+
+        .list-item-name {
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 3px;
+            word-break: break-word;
+        }
+
+        .list-item-qty {
+            font-size: 14px;
+            font-weight: 700;
+            color: #22c55e;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            border-top: 2px solid #fcd34d;
+        }
+
+        .footer p {
+            margin: 2px 0;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-export:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🍾 Escaneo Profesional</h1>
+            <p>El Paso Guamasa - Apunta a código de barras</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-box">
+                <div class="number" id="totalItems">0</div>
+                <div class="label">Productos</div>
+            </div>
+            <div class="stat-box">
+                <div class="number" id="totalQty">0</div>
+                <div class="label">Botellas</div>
+            </div>
+            <div class="stat-box">
+                <div class="number" id="lastScanned">-</div>
+                <div class="label">Último</div>
+            </div>
+        </div>
+
+        <!-- Scanner -->
+        <div class="scanner-wrapper">
+            <div id="scanner"></div>
+            <div class="scanner-overlay"></div>
+            <div class="scanner-guides">
+                <div class="guide-line guide-horizontal"></div>
+                <div class="scanning-text">📱 ESCANEA CÓDIGO DE BARRAS</div>
+            </div>
+            <div class="detected-box hidden" id="detectedBox"></div>
+            <div class="list-container hidden" id="listContainer"></div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal" id="quantityModal">
+            <div class="modal-content">
+                <div class="product-name" id="modalProductName"></div>
+                <div class="product-code" id="modalProductCode"></div>
+                <input 
+                    type="number" 
+                    class="quantity-input" 
+                    id="quantityInput" 
+                    value="1" 
+                    min="1"
+                    placeholder="Cantidad"
+                />
+                <div class="modal-buttons">
+                    <button class="btn-confirm" onclick="confirmQuantity()">✅ AGREGAR</button>
+                    <button class="btn-cancel" onclick="cancelQuantity()">❌ CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p id="footerText">Listo para escanear</p>
+            <button class="btn-export" onclick="exportCSV()">📥 DESCARGAR CSV</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const ALCOHOLES = {
+            '12323': 'GINEBRA STATUS INDICA TUNOS 70cl 40%',
+            '13430': 'RON PLANTATION XO 20 AÑOS 70cl 40%',
+            '1423': 'LICOR MELON BOLS 700ML',
+            '1610': 'TEQUILA PATRON CAFE 70cl.',
+            '244743': 'VINO TINTO COSECHERO 75cl.',
+            '3018333000410': 'CHAMPAGNE PIPER HEIDSIECK 200cl 12%',
+            '3043709000886': 'CHAMPAGNE MUMM ICE XTRA 75cl',
+            '487': 'BRANDY JAIME I 70cl.',
+            '5018481022003': 'WHISKY TOMATIN LEGACY 70CL 43º',
+            '5018481100213': 'WHISKY TOMATIN 12 AÑOS 70cl 43º',
+            '5114': 'WHISKY BALLANTINES 1L.',
+            '5903': 'RON DIPLOMATICO RESERVA EXCLUSIVA 70cl.',
+            '801195': 'WHISKY TEANINICH 8 AÑOS 70cl 60,3% SR26',
+            '8148': 'RON CAMAGEY BLANCO 1L.',
+            '1234567890123': 'VODKA SMIRNOFF 70CL',
+            '9876543210987': 'RON HAVANA CLUB AÑEJO 7 AÑOS 75CL',
+            '5555555555555': 'VINO BLANCO MARQUÉS DE RISCAL 75CL',
+            '6666666666666': 'CERVEZA ESTRELLA DAMM PACK 6x330ML',
+            '7777777777777': 'RON BARCELÓ GRAN AÑEJO 70CL',
+            '8888888888888': 'WHISKY MACALLAN 18 AÑOS 70CL'
+        };
+
+        let scannedItems = [];
+        let lastScannedCode = null;
+        let currentModalCode = null;
+        let lastDetectedTime = 0;
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            initScanner();
+            updateStats();
+
+            document.getElementById('quantityInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') confirmQuantity();
+            });
+        });
+
+        // ==================== SCANNER ====================
+        function initScanner() {
+            Quagga.init({
+                inputStream: {
+                    name: 'Live',
+                    type: 'LiveStream',
+                    target: document.querySelector('#scanner'),
+                    constraints: {
+                        width: { min: 640 },
+                        height: { min: 480 },
+                        facingMode: 'environment'
+                    }
+                },
+                decoder: {
+                    readers: [
+                        'ean_reader',
+                        'ean_8_reader',
+                        'code_128_reader',
+                        'code_39_reader',
+                        'upc_reader',
+                        'upc_e_reader'
+                    ],
+                    debug: {
+                        showCanvas: false,
+                        showPatternters: false
+                    }
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(handleDetection);
+        }
+
+        function handleDetection(result) {
+            const now = Date.now();
+            if (now - lastDetectedTime < 800) return; // Evitar detecciones duplicadas
+            
+            const code = result.codeResult.code;
+            if (!code) return;
+
+            lastDetectedTime = now;
+            lastScannedCode = code;
+
+            const product = ALCOHOLES[code];
+            if (!product) {
+                showDetectedBox(`❌ No reconocido: ${code}`, false);
+                return;
+            }
+
+            // Reproducir sonido
+            playBeep();
+
+            // Mostrar modal
+            currentModalCode = code;
+            document.getElementById('modalProductName').textContent = product;
+            document.getElementById('modalProductCode').textContent = `📦 ${code}`;
+            document.getElementById('quantityInput').value = '1';
+            document.getElementById('quantityModal').classList.add('active');
+            document.getElementById('quantityInput').focus();
+
+            showDetectedBox(`✅ Detectado: ${product.substring(0, 30)}`, true);
+            updateStats();
+        }
+
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function showDetectedBox(text, isSuccess) {
+            const box = document.getElementById('detectedBox');
+            box.textContent = text;
+            box.classList.remove('hidden');
+            if (isSuccess) box.classList.add('success');
+            else box.classList.remove('success');
+
+            setTimeout(() => {
+                box.classList.add('hidden');
+            }, 2000);
+        }
+
+        // ==================== MODAL ====================
+        function confirmQuantity() {
+            const qty = parseInt(document.getElementById('quantityInput').value) || 1;
+            const code = currentModalCode;
+            const product = ALCOHOLES[code];
+
+            const existing = scannedItems.find(i => i.codigo === code);
+            if (existing) {
+                existing.cantidad += qty;
+            } else {
+                scannedItems.push({
+                    codigo: code,
+                    nombre: product,
+                    cantidad: qty
+                });
+            }
+
+            saveToStorage();
+            updateStats();
+            renderList();
+            closeModal();
+        }
+
+        function cancelQuantity() {
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('quantityModal').classList.remove('active');
+            currentModalCode = null;
+        }
+
+        // ==================== STORAGE ====================
+        function saveToStorage() {
+            localStorage.setItem('inventoryData', JSON.stringify(scannedItems));
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('inventoryData');
+            if (saved) {
+                try {
+                    scannedItems = JSON.parse(saved);
+                    renderList();
+                } catch (e) {
+                    console.error('Error:', e);
+                }
+            }
+        }
+
+        // ==================== UI ====================
+        function updateStats() {
+            const totalProducts = scannedItems.length;
+            const totalQty = scannedItems.reduce((sum, i) => sum + i.cantidad, 0);
+
+            document.getElementById('totalItems').textContent = totalProducts;
+            document.getElementById('totalQty').textContent = totalQty;
+            document.getElementById('lastScanned').textContent = lastScannedCode ? lastScannedCode.substring(0, 6) : '-';
+            document.getElementById('footerText').textContent = `${totalProducts} productos | ${totalQty} botellas`;
+        }
+
+        function renderList() {
+            const container = document.getElementById('listContainer');
+            
+            if (scannedItems.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            container.innerHTML = scannedItems.map((item, idx) => `
+                <div class="list-item">
+                    <div class="list-item-name">${item.nombre.substring(0, 35)}</div>
+                    <div class="list-item-qty">⚡ ${item.cantidad} unidades</div>
+                </div>
+            `).join('');
+        }
+
+        // ==================== EXPORT ====================
+        function exportCSV() {
+            if (scannedItems.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const headers = ['Código', 'Descripción', 'Cantidad'];
+            const rows = scannedItems.map(item => [
+                item.codigo,
+                `"${item.nombre}"`,
+                item.cantidad
+            ]);
+
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `inventario-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+
+            alert('✅ CSV descargado');
+        }
+    </script>
+</body>
+</html>
