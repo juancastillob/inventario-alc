@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>🍾 Escaneo Profesional - El Paso Guamasa</title>
+    <title>📸 Inventario Profesional - El Paso Guamasa</title>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
         * {
@@ -18,14 +18,8 @@
             width: 100%;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #000;
+            background: #f5f5f5;
             overflow: hidden;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .container {
@@ -33,21 +27,20 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #000;
+            background: white;
         }
 
         /* Header */
         .header {
             background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
             color: white;
-            padding: 12px 20px;
+            padding: 12px 16px;
             text-align: center;
             flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .header h1 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
         }
 
@@ -57,291 +50,359 @@
             margin-top: 2px;
         }
 
-        /* Stats */
-        .stats {
+        /* Tabs */
+        .tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.8);
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
             border-bottom: 2px solid #fcd34d;
             flex-shrink: 0;
         }
 
-        .stat-box {
-            padding: 8px;
-            border-radius: 8px;
+        .tab {
+            padding: 12px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .stat-box .number {
-            font-size: 18px;
             font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #666;
         }
 
-        .stat-box .label {
-            font-size: 9px;
-            margin-top: 2px;
-            opacity: 0.8;
+        .tab.active {
+            color: #b45309;
+            border-bottom-color: #b45309;
         }
 
-        /* Scanner */
-        .scanner-wrapper {
+        /* Views */
+        .view {
+            display: none;
             flex: 1;
-            position: relative;
-            background: #000;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        #scanner {
-            width: 100%;
-            height: 100%;
-        }
-
-        .scanner-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 300px;
-            border: 3px solid #fbbf24;
-            border-radius: 12px;
-            box-shadow: inset 0 0 30px rgba(251, 191, 36, 0.2),
-                        0 0 30px rgba(251, 191, 36, 0.3);
-            pointer-events: none;
-        }
-
-        .scanner-guides {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .guide-line {
-            position: absolute;
-            background: #fbbf24;
-            opacity: 0.5;
-        }
-
-        .guide-horizontal {
-            width: 100%;
-            height: 2px;
-            top: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
-        .scanning-text {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fbbf24;
-            font-weight: 700;
-            font-size: 14px;
-            text-align: center;
-            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-        }
-
-        /* Detected Code */
-        .detected-box {
-            position: absolute;
-            bottom: 20px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #fbbf24;
-            border-radius: 8px;
-            padding: 10px;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .detected-box.hidden {
-            display: none;
-        }
-
-        .detected-box.success {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 1000;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.active {
+        .view.active {
             display: flex;
         }
 
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+        /* Camera View */
+        .camera-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .camera-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #camera {
             width: 100%;
-            max-width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            height: 100%;
+            object-fit: cover;
         }
 
-        .product-name {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 10px;
-            word-wrap: break-word;
+        .camera-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
         }
 
-        .product-code {
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 15px;
-            font-family: monospace;
-            background: #f0f0f0;
-            padding: 8px;
-            border-radius: 6px;
+        .btn-capture {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border: 4px solid white;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
         }
 
-        .quantity-input {
+        .btn-capture:active {
+            transform: scale(0.9);
+        }
+
+        /* Edit View */
+        .edit-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .captured-image {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #fcd34d;
+            max-height: 200px;
             border-radius: 8px;
-            font-size: 18px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 15px;
+            object-fit: cover;
+            border: 2px solid #fcd34d;
         }
 
-        .quantity-input:focus {
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            font-size: 12px;
+            color: #1f2937;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 2px solid #fcd34d;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input:focus {
             outline: none;
             border-color: #b45309;
             background: #fffbeb;
         }
 
-        .modal-buttons {
+        .form-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-top: 10px;
         }
 
-        button {
-            padding: 12px;
+        .btn-save {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
             border: none;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 6px;
             font-weight: 700;
-            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s;
-            color: white;
         }
 
-        .btn-confirm {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        }
-
-        .btn-confirm:active {
+        .btn-save:active {
             transform: scale(0.95);
         }
 
         .btn-cancel {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
         .btn-cancel:active {
             transform: scale(0.95);
         }
 
-        /* List */
-        .list-container {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            max-width: 280px;
-            max-height: 60%;
-            background: rgba(0, 0, 0, 0.9);
-            border-left: 2px solid #fbbf24;
-            overflow-y: auto;
-            z-index: 100;
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
         }
 
-        .list-container.hidden {
+        .status-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-message.loading {
+            background: #fef08a;
+            color: #854d0e;
+        }
+
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-message.hidden {
             display: none;
         }
 
-        .list-item {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-            color: white;
-            font-size: 11px;
+        /* Inventory View */
+        .inventory-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .list-item-name {
-            font-weight: 700;
-            color: #fbbf24;
-            margin-bottom: 3px;
-            word-break: break-word;
+        .inventory-header {
+            padding: 12px 16px;
+            background: #faf8f3;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
         }
 
-        .list-item-qty {
+        .inventory-header h2 {
             font-size: 14px;
             font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .inventory-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .inventory-stat {
+            padding: 6px 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 11px;
+            border-left: 3px solid #fcd34d;
+        }
+
+        .inventory-stat-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #b45309;
+        }
+
+        .inventory-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .inventory-item {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #b45309;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .inventory-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inventory-item-name {
+            font-weight: 700;
+            font-size: 13px;
+            color: #1f2937;
+            word-break: break-word;
+            margin-bottom: 3px;
+        }
+
+        .inventory-item-code {
+            font-size: 11px;
+            color: #6b7280;
+            font-family: monospace;
+        }
+
+        .inventory-item-qty {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+        }
+
+        .inventory-item-qty-value {
+            font-weight: 700;
+            font-size: 16px;
             color: #22c55e;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .inventory-item-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+            font-size: 13px;
         }
 
         /* Footer */
         .footer {
             background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
             color: white;
-            padding: 12px;
+            padding: 12px 16px;
             text-align: center;
-            font-size: 11px;
             flex-shrink: 0;
             border-top: 2px solid #fcd34d;
         }
 
         .footer p {
-            margin: 2px 0;
+            font-size: 11px;
+            margin: 3px 0;
         }
 
         .btn-export {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            padding: 10px 20px;
-            border-radius: 6px;
             color: white;
             border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
             font-weight: 700;
+            font-size: 12px;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .btn-export:active {
             transform: scale(0.95);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .inventory-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .inventory-list::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .inventory-list::-webkit-scrollbar-thumb {
+            background: #d4a574;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -349,61 +410,84 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🍾 Escaneo Profesional</h1>
-            <p>El Paso Guamasa - Apunta a código de barras</p>
+            <h1>📸 Inventario Profesional</h1>
+            <p>El Paso Guamasa - Fotografía y unifica botellas</p>
         </div>
 
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-box">
-                <div class="number" id="totalItems">0</div>
-                <div class="label">Productos</div>
-            </div>
-            <div class="stat-box">
-                <div class="number" id="totalQty">0</div>
-                <div class="label">Botellas</div>
-            </div>
-            <div class="stat-box">
-                <div class="number" id="lastScanned">-</div>
-                <div class="label">Último</div>
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('camera')">📷 FOTOGRAFIAR</div>
+            <div class="tab" onclick="switchTab('inventory')">📊 INVENTARIO</div>
+        </div>
+
+        <!-- Camera View -->
+        <div class="view active" id="cameraView">
+            <div class="camera-section">
+                <div class="camera-wrapper">
+                    <video id="camera" autoplay playsinline muted></video>
+                    <canvas id="canvas"></canvas>
+                    <div class="camera-controls">
+                        <button class="btn-capture" onclick="capturePhoto()">📸</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Scanner -->
-        <div class="scanner-wrapper">
-            <div id="scanner"></div>
-            <div class="scanner-overlay"></div>
-            <div class="scanner-guides">
-                <div class="guide-line guide-horizontal"></div>
-                <div class="scanning-text">📱 ESCANEA CÓDIGO DE BARRAS</div>
+        <!-- Edit View (Hidden initially) -->
+        <div class="view" id="editView">
+            <div class="edit-section">
+                <img id="capturedImg" class="captured-image" />
+                
+                <div id="statusMessage" class="status-message loading">
+                    Analizando código de barras...
+                </div>
+
+                <div class="form-group">
+                    <label>📦 Código de Barras</label>
+                    <input type="text" id="editCode" placeholder="Código (editable)">
+                </div>
+
+                <div class="form-group">
+                    <label>🍾 Nombre del Producto</label>
+                    <input type="text" id="editName" placeholder="Nombre (editable)">
+                </div>
+
+                <div class="form-group">
+                    <label>📊 Cantidad Física</label>
+                    <input type="number" id="editQty" placeholder="Cantidad" min="1" value="1">
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn-save" onclick="saveProduct()">✅ GUARDAR</button>
+                    <button class="btn-cancel" onclick="cancelEdit()">❌ CANCELAR</button>
+                </div>
             </div>
-            <div class="detected-box hidden" id="detectedBox"></div>
-            <div class="list-container hidden" id="listContainer"></div>
         </div>
 
-        <!-- Modal -->
-        <div class="modal" id="quantityModal">
-            <div class="modal-content">
-                <div class="product-name" id="modalProductName"></div>
-                <div class="product-code" id="modalProductCode"></div>
-                <input 
-                    type="number" 
-                    class="quantity-input" 
-                    id="quantityInput" 
-                    value="1" 
-                    min="1"
-                    placeholder="Cantidad"
-                />
-                <div class="modal-buttons">
-                    <button class="btn-confirm" onclick="confirmQuantity()">✅ AGREGAR</button>
-                    <button class="btn-cancel" onclick="cancelQuantity()">❌ CANCELAR</button>
+        <!-- Inventory View -->
+        <div class="view" id="inventoryView">
+            <div class="inventory-section">
+                <div class="inventory-header">
+                    <h2>Toma Física Unificada</h2>
+                    <div class="inventory-stats">
+                        <div class="inventory-stat">
+                            SKUs: <span class="inventory-stat-value" id="totalSkus">0</span>
+                        </div>
+                        <div class="inventory-stat">
+                            Botellas: <span class="inventory-stat-value" id="totalBotellas">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inventory-list" id="inventoryList">
+                    <div class="empty-state">Sin elementos aún. Fotografía botellas.</div>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p id="footerText">Listo para escanear</p>
+            <p id="footerText">Listo para fotografiar</p>
             <button class="btn-export" onclick="exportCSV()">📥 DESCARGAR CSV</button>
         </div>
     </div>
@@ -434,125 +518,87 @@
         };
 
         let scannedItems = [];
-        let lastScannedCode = null;
-        let currentModalCode = null;
-        let lastDetectedTime = 0;
 
         // ==================== INIT ====================
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
-            initScanner();
-            updateStats();
-
-            document.getElementById('quantityInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') confirmQuantity();
-            });
+            initCamera();
+            updateInventoryStats();
         });
 
-        // ==================== SCANNER ====================
-        function initScanner() {
-            Quagga.init({
+        // ==================== CAMERA ====================
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                document.getElementById('camera').srcObject = stream;
+            } catch (err) {
+                alert('Error de cámara: ' + err.name);
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg');
+            document.getElementById('capturedImg').src = imageData;
+            switchTab('edit');
+            analyzeBarcode(canvas);
+        }
+
+        // ==================== BARCODE DETECTION ====================
+        function analyzeBarcode(canvas) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.className = 'status-message loading';
+            statusEl.textContent = 'Analizando código de barras...';
+
+            Quagga.decodeSingle({
+                src: canvas.toDataURL('image/jpeg'),
+                numOfWorkers: 1,
                 inputStream: {
-                    name: 'Live',
-                    type: 'LiveStream',
-                    target: document.querySelector('#scanner'),
-                    constraints: {
-                        width: { min: 640 },
-                        height: { min: 480 },
-                        facingMode: 'environment'
-                    }
+                    size: 800
                 },
                 decoder: {
-                    readers: [
-                        'ean_reader',
-                        'ean_8_reader',
-                        'code_128_reader',
-                        'code_39_reader',
-                        'upc_reader',
-                        'upc_e_reader'
-                    ],
-                    debug: {
-                        showCanvas: false,
-                        showPatternters: false
-                    }
+                    readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'code_39_reader', 'upc_reader']
                 }
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    return;
+            }, (result) => {
+                if (result && result.codeResult) {
+                    const code = result.codeResult.code;
+                    const productName = ALCOHOLES[code] || 'Producto desconocido';
+                    
+                    document.getElementById('editCode').value = code;
+                    document.getElementById('editName').value = productName;
+                    
+                    statusEl.className = 'status-message success';
+                    statusEl.textContent = '✅ Código detectado: ' + code;
+                } else {
+                    statusEl.className = 'status-message error';
+                    statusEl.textContent = '❌ No se detectó código. Edita manualmente.';
                 }
-                Quagga.start();
-            });
 
-            Quagga.onDetected(handleDetection);
+                setTimeout(() => {
+                    statusEl.className = 'status-message hidden';
+                }, 2000);
+            });
         }
 
-        function handleDetection(result) {
-            const now = Date.now();
-            if (now - lastDetectedTime < 800) return; // Evitar detecciones duplicadas
-            
-            const code = result.codeResult.code;
-            if (!code) return;
+        // ==================== EDIT ====================
+        function saveProduct() {
+            const code = document.getElementById('editCode').value.trim();
+            const name = document.getElementById('editName').value.trim();
+            const qty = parseInt(document.getElementById('editQty').value) || 1;
 
-            lastDetectedTime = now;
-            lastScannedCode = code;
-
-            const product = ALCOHOLES[code];
-            if (!product) {
-                showDetectedBox(`❌ No reconocido: ${code}`, false);
+            if (!code || !name) {
+                alert('Completa código y nombre');
                 return;
             }
-
-            // Reproducir sonido
-            playBeep();
-
-            // Mostrar modal
-            currentModalCode = code;
-            document.getElementById('modalProductName').textContent = product;
-            document.getElementById('modalProductCode').textContent = `📦 ${code}`;
-            document.getElementById('quantityInput').value = '1';
-            document.getElementById('quantityModal').classList.add('active');
-            document.getElementById('quantityInput').focus();
-
-            showDetectedBox(`✅ Detectado: ${product.substring(0, 30)}`, true);
-            updateStats();
-        }
-
-        function playBeep() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
-        }
-
-        function showDetectedBox(text, isSuccess) {
-            const box = document.getElementById('detectedBox');
-            box.textContent = text;
-            box.classList.remove('hidden');
-            if (isSuccess) box.classList.add('success');
-            else box.classList.remove('success');
-
-            setTimeout(() => {
-                box.classList.add('hidden');
-            }, 2000);
-        }
-
-        // ==================== MODAL ====================
-        function confirmQuantity() {
-            const qty = parseInt(document.getElementById('quantityInput').value) || 1;
-            const code = currentModalCode;
-            const product = ALCOHOLES[code];
 
             const existing = scannedItems.find(i => i.codigo === code);
             if (existing) {
@@ -560,24 +606,36 @@
             } else {
                 scannedItems.push({
                     codigo: code,
-                    nombre: product,
+                    nombre: name,
                     cantidad: qty
                 });
             }
 
             saveToStorage();
-            updateStats();
-            renderList();
-            closeModal();
+            updateInventoryStats();
+            renderInventory();
+            cancelEdit();
+            playBeep();
         }
 
-        function cancelQuantity() {
-            closeModal();
+        function cancelEdit() {
+            switchTab('camera');
+            document.getElementById('editCode').value = '';
+            document.getElementById('editName').value = '';
+            document.getElementById('editQty').value = '1';
         }
 
-        function closeModal() {
-            document.getElementById('quantityModal').classList.remove('active');
-            currentModalCode = null;
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.value = 800;
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.1);
         }
 
         // ==================== STORAGE ====================
@@ -590,39 +648,52 @@
             if (saved) {
                 try {
                     scannedItems = JSON.parse(saved);
-                    renderList();
+                    renderInventory();
                 } catch (e) {
                     console.error('Error:', e);
                 }
             }
         }
 
-        // ==================== UI ====================
-        function updateStats() {
-            const totalProducts = scannedItems.length;
-            const totalQty = scannedItems.reduce((sum, i) => sum + i.cantidad, 0);
+        // ==================== INVENTORY ====================
+        function updateInventoryStats() {
+            const totalSkus = scannedItems.length;
+            const totalBotellas = scannedItems.reduce((sum, i) => sum + i.cantidad, 0);
 
-            document.getElementById('totalItems').textContent = totalProducts;
-            document.getElementById('totalQty').textContent = totalQty;
-            document.getElementById('lastScanned').textContent = lastScannedCode ? lastScannedCode.substring(0, 6) : '-';
-            document.getElementById('footerText').textContent = `${totalProducts} productos | ${totalQty} botellas`;
+            document.getElementById('totalSkus').textContent = totalSkus;
+            document.getElementById('totalBotellas').textContent = totalBotellas;
+            document.getElementById('footerText').textContent = `${totalSkus} productos | ${totalBotellas} botellas`;
         }
 
-        function renderList() {
-            const container = document.getElementById('listContainer');
-            
+        function renderInventory() {
+            const container = document.getElementById('inventoryList');
+
             if (scannedItems.length === 0) {
-                container.classList.add('hidden');
+                container.innerHTML = '<div class="empty-state">Sin elementos aún. Fotografía botellas.</div>';
                 return;
             }
 
-            container.classList.remove('hidden');
-            container.innerHTML = scannedItems.map((item, idx) => `
-                <div class="list-item">
-                    <div class="list-item-name">${item.nombre.substring(0, 35)}</div>
-                    <div class="list-item-qty">⚡ ${item.cantidad} unidades</div>
-                </div>
-            `).join('');
+            container.innerHTML = scannedItems
+                .sort((a, b) => b.cantidad - a.cantidad)
+                .map((item, idx) => `
+                    <div class="inventory-item">
+                        <div class="inventory-item-info">
+                            <div class="inventory-item-name">${item.nombre.substring(0, 45)}</div>
+                            <div class="inventory-item-code">📦 ${item.codigo}</div>
+                        </div>
+                        <div class="inventory-item-qty">
+                            <span class="inventory-item-qty-value">${item.cantidad}</span>
+                            <button class="inventory-item-btn" onclick="removeProduct('${item.codigo}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function removeProduct(code) {
+            scannedItems = scannedItems.filter(i => i.codigo !== code);
+            saveToStorage();
+            updateInventoryStats();
+            renderInventory();
         }
 
         // ==================== EXPORT ====================
@@ -632,7 +703,7 @@
                 return;
             }
 
-            const headers = ['Código', 'Descripción', 'Cantidad'];
+            const headers = ['Código', 'Descripción', 'Cantidad Física'];
             const rows = scannedItems.map(item => [
                 item.codigo,
                 `"${item.nombre}"`,
@@ -646,8 +717,24 @@
             link.setAttribute('href', url);
             link.setAttribute('download', `inventario-${new Date().toISOString().split('T')[0]}.csv`);
             link.click();
+        }
 
-            alert('✅ CSV descargado');
+        // ==================== TABS ====================
+        function switchTab(tab) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            if (tab === 'camera') {
+                document.getElementById('cameraView').classList.add('active');
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+            } else if (tab === 'inventory') {
+                document.getElementById('inventoryView').classList.add('active');
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                updateInventoryStats();
+                renderInventory();
+            } else if (tab === 'edit') {
+                document.getElementById('editView').classList.add('active');
+            }
         }
     </script>
 </body>
