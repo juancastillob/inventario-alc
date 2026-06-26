@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>📸 Inventario - El Paso Guamasa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; height: 100vh; overflow: hidden; }
+        
+        .container { display: flex; flex-direction: column; height: 100vh; background: #000; }
+        
+        .header {
+            background: linear-gradient(135deg, #92400e, #b45309);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: white;
+            border-bottom: 3px solid #fcd34d;
+        }
+        
+        .tab {
+            padding: 10px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            color: #b45309;
+            border-bottom-color: #b45309;
+        }
+        
+        .content {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .content.active {
+            display: flex;
+        }
+        
+        #videoStream {
+            flex: 1;
+            width: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+        
+        .button-bar {
+            padding: 15px;
+            text-align: center;
+            background: #000;
+            border-top: 2px solid #fcd34d;
+        }
+        
+        .camera-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: linear-gradient(135deg, #ff6b35, #ff4500);
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 75, 0, 0.8);
+        }
+        
+        .camera-btn:active { transform: scale(0.9); }
+        
+        .edit-view {
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+        }
+        
+        .edit-view img {
+            width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #fcd34d;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #fcd34d;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #b45309;
+            background: #fffbeb;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .btn-save { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .btn-cancel { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn:active { transform: scale(0.95); }
+        
+        .inventory-view {
+            overflow-y: auto;
+            background: white;
+        }
+        
+        .inv-header {
+            padding: 12px;
+            background: #faf8f3;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+        }
+        
+        .inv-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stat {
+            padding: 6px;
+            background: white;
+            border-left: 3px solid #fcd34d;
+            font-size: 11px;
+        }
+        
+        .stat-value { font-weight: 700; font-size: 16px; color: #b45309; }
+        
+        .inv-items {
+            padding: 12px;
+        }
+        
+        .inv-item {
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #b45309;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .inv-item:active { transform: scale(0.98); }
+        .inv-item-name { font-weight: 700; font-size: 13px; }
+        .inv-item-code { font-size: 10px; color: #6b7280; }
+        .inv-item-qty { font-weight: 700; font-size: 18px; color: #22c55e; }
+        
+        .empty { text-align: center; color: #999; padding: 40px 20px; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 300px;
+        }
+        
+        .qty-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .qty-btn { width: 40px; height: 40px; border: none; border-radius: 6px; font-weight: 700; font-size: 20px; cursor: pointer; }
+        .qty-minus { background: #ef4444; color: white; }
+        .qty-plus { background: #22c55e; color: white; }
+        .qty-display { width: 60px; text-align: center; font-weight: 700; font-size: 24px; color: #b45309; border: 2px solid #fcd34d; padding: 8px; border-radius: 6px; }
+        
+        .footer {
+            background: linear-gradient(135deg, #92400e, #b45309);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .btn-export {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Inventario Profesional</h1>
+            <p>El Paso Guamasa</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="tab('camera')">📷 FOTOGRAFIAR</div>
+            <div class="tab" onclick="tab('inventory')">📊 INVENTARIO</div>
+        </div>
+        
+        <div class="content active" id="cameraContent">
+            <video id="videoStream" autoplay playsinline muted></video>
+            <canvas id="canvas"></canvas>
+            <div class="button-bar">
+                <button class="camera-btn" onclick="capture()">📸</button>
+            </div>
+        </div>
+        
+        <div class="content" id="editContent">
+            <div class="edit-view">
+                <img id="photo" />
+                <div class="form-group">
+                    <label>📦 Código</label>
+                    <input type="text" id="code" placeholder="Código" onchange="buscarNombre()" onblur="buscarNombre()">
+                </div>
+                <div class="form-group">
+                    <label>🍾 Nombre</label>
+                    <input type="text" id="name" placeholder="Nombre">
+                </div>
+                <div class="form-group">
+                    <label>📊 Cantidad</label>
+                    <input type="number" id="qty" value="1" min="1">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-save" onclick="save()">✅ GUARDAR</button>
+                    <button class="btn btn-cancel" onclick="tab('camera')">❌ CANCELAR</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content" id="invContent">
+            <div class="inv-header">
+                <h2>Toma Física</h2>
+                <div class="stats">
+                    <div class="stat">SKUs: <span class="stat-value" id="skus">0</span></div>
+                    <div class="stat">Botellas: <span class="stat-value" id="btls">0</span></div>
+                </div>
+            </div>
+            <div class="inv-items" id="items"></div>
+        </div>
+        
+        <div class="footer">
+            <p id="status">Listo</p>
+            <button class="btn-export" onclick="exportData()">📥 CSV</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <div style="font-size: 11px; color: #666; margin-bottom: 8px;">📦 <span id="modalCode"></span></div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 700; font-size: 12px; margin-bottom: 4px;">🍾 Nombre</label>
+                <input type="text" id="modalName" style="width: 100%; padding: 10px; border: 2px solid #fcd34d; border-radius: 6px; font-size: 13px; font-weight: 600;">
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 700; font-size: 12px; margin-bottom: 4px;">📊 Cantidad</label>
+                <div class="qty-control">
+                    <button class="qty-btn qty-minus" onclick="qtyDown()">−</button>
+                    <input type="number" class="qty-display" id="modalQty" min="1">
+                    <button class="qty-btn qty-plus" onclick="qtyUp()">+</button>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button style="background: #22c55e; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer;" onclick="saveEdit()">✅ GUARDAR</button>
+                <button style="background: #ef4444; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer;" onclick="deleteEdit()">🗑️ ELIMINAR</button>
+            </div>
+            <button style="width: 100%; background: #6b7280; color: white; border: none; padding: 10px; margin-top: 8px; border-radius: 6px; font-weight: 700; cursor: pointer;" onclick="closeModal()">❌ CANCELAR</button>
+        </div>
+    </div>
+    
+    <script>
+        const PRODUCTOS = {"12323": "GINEBRA STATUS INDICA TUNOS 70cl 40%", "13430": "RON PLANTATION XO 20 AÑOS 70cl 40%", "1423": "LICOR MELON BOLS 700ML", "1610": "TEQUILA PATRON CAFE 70cl.", "244743": "VINO TINTO COSECHERO 75cl.", "3018333000410": "CHAMPAGNE PIPER HEIDSIECK 200cl 12%", "3043709000886": "CHAMPAGNE MUMM ICE XTRA 75cl", "487": "BRANDY JAIME I 70cl.", "5018481022003": "WHISKY TOMATIN LEGACY 70CL 43º", "5018481100213": "WHISKY TOMATIN 12 AÑOS 70cl 43º", "5114": "WHISKY BALLANTINES 1L.", "5903": "RON DIPLOMATICO RESERVA EXCLUSIVA 70cl.", "7591156000332": "RON SANTA TERESA 1796 SPEYSIDE 70cl.", "7591323001087": "RON CARÚPANO 12 AÑOS RESERVA EXCLUSIVA 70cl", "7591863001394": "RON VENEZOLANO CAÑAVERAL BLANCO AÑEJO 70CL", "801195": "WHISKY TEANINICH 8 AÑOS 70cl 60,3% SR26", "8148": "RON CAMAGEY BLANCO 1L.", "8410744012894": "VINO BLANCO NUVA SEMIDULCE VIURA-SAUVIGÑON", "8410793226136": "CERVEZA VICTORIA MALAGA LATA 33cl"};
+        
+        let items = [];
+        let editIdx = -1;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initCamera();
+        });
+        
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: false
+                });
+                const video = document.getElementById('videoStream');
+                video.srcObject = stream;
+                video.play();
+            } catch (e) {
+                alert('Error de cámara: ' + e.message);
+            }
+        }
+        
+        function capture() {
+            const video = document.getElementById('videoStream');
+            const canvas = document.getElementById('canvas');
+            
+            if (!video.videoWidth) {
+                alert('La cámara aún no está lista. Intenta de nuevo.');
+                return;
+            }
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            document.getElementById('photo').src = dataUrl;
+            
+            tab('edit');
+        }
+        
+        function buscarNombre() {
+            const code = document.getElementById('code').value.trim();
+            const nameField = document.getElementById('name');
+            
+            if (!code) {
+                nameField.value = '';
+                nameField.style.background = 'white';
+                nameField.style.borderColor = '#fcd34d';
+                return;
+            }
+            
+            // PRIMERO buscar en productos YA GUARDADOS
+            const existingItem = items.find(i => i.code === code);
+            if (existingItem) {
+                nameField.value = existingItem.name;
+                nameField.style.background = '#dcfce7';
+                nameField.style.borderColor = '#22c55e';
+                return;
+            }
+            
+            // LUEGO buscar en base de datos
+            if (PRODUCTOS[code]) {
+                nameField.value = PRODUCTOS[code];
+                nameField.style.background = '#e0e7ff';
+                nameField.style.borderColor = '#6366f1';
+            } else {
+                nameField.value = '';
+                nameField.style.background = '#fee2e2';
+                nameField.style.borderColor = '#ef4444';
+            }
+        }
+        
+        function save() {
+            const code = document.getElementById('code').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const qty = parseInt(document.getElementById('qty').value) || 1;
+            
+            if (!code || !name) { alert('Completa código y nombre'); return; }
+            if (name.toLowerCase() === 'desconocido') {
+                alert('❌ Debes identificar el producto');
+                return;
+            }
+            
+            const existing = items.find(i => i.code === code);
+            if (existing) {
+                existing.qty += qty;
+            } else {
+                items.push({ code, name, qty });
+            }
+            
+            saveData();
+            render();
+            tab('camera');
+            beep();
+            
+            document.getElementById('code').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('qty').value = '1';
+        }
+        
+        function tab(name) {
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            if (name === 'camera') {
+                document.getElementById('cameraContent').classList.add('active');
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+            } else if (name === 'edit') {
+                document.getElementById('editContent').classList.add('active');
+            } else if (name === 'inventory') {
+                document.getElementById('invContent').classList.add('active');
+                render();
+            }
+        }
+        
+        function render() {
+            const html = items.length === 0 ? '<div class="empty">Sin elementos</div>' :
+                items.sort((a, b) => b.qty - a.qty)
+                    .map((item, i) => `
+                        <div class="inv-item" onclick="openModal(${i})">
+                            <div>
+                                <div class="inv-item-name">${item.name.substring(0, 35)}</div>
+                                <div class="inv-item-code">📦 ${item.code}</div>
+                            </div>
+                            <div class="inv-item-qty">${item.qty}</div>
+                        </div>
+                    `).join('');
+            
+            document.getElementById('items').innerHTML = html;
+            document.getElementById('skus').textContent = items.length;
+            document.getElementById('btls').textContent = items.reduce((s, i) => s + i.qty, 0);
+            document.getElementById('status').textContent = `${items.length} productos | ${items.reduce((s, i) => s + i.qty, 0)} botellas`;
+        }
+        
+        function openModal(i) {
+            editIdx = i;
+            const item = items[i];
+            document.getElementById('modalCode').textContent = item.code;
+            document.getElementById('modalName').value = item.name;
+            document.getElementById('modalQty').value = item.qty;
+            document.getElementById('modal').classList.add('active');
+        }
+        
+        function qtyUp() {
+            const inp = document.getElementById('modalQty');
+            inp.value = parseInt(inp.value) + 1;
+        }
+        
+        function qtyDown() {
+            const inp = document.getElementById('modalQty');
+            inp.value = Math.max(1, parseInt(inp.value) - 1);
+        }
+        
+        function saveEdit() {
+            if (editIdx < 0) return;
+            const newName = document.getElementById('modalName').value.trim();
+            const newQty = parseInt(document.getElementById('modalQty').value) || 1;
+            
+            if (!newName) {
+                alert('El nombre no puede estar vacío');
+                return;
+            }
+            
+            if (newName.toLowerCase() === 'desconocido') {
+                alert('❌ Debes usar un nombre válido');
+                return;
+            }
+            
+            items[editIdx].name = newName;
+            items[editIdx].qty = newQty;
+            saveData();
+            render();
+            closeModal();
+            beep();
+        }
+        
+        function deleteEdit() {
+            if (editIdx < 0) return;
+            if (confirm('¿Eliminar este producto?')) {
+                items.splice(editIdx, 1);
+                saveData();
+                render();
+                closeModal();
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            editIdx = -1;
+        }
+        
+        function exportData() {
+            if (!items.length) { alert('Sin datos'); return; }
+            const csv = 'Código,Nombre,Cantidad\n' + items.map(i => `${i.code},"${i.name}",${i.qty}`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'inventario-' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+        }
+        
+        function saveData() {
+            localStorage.setItem('inv', JSON.stringify(items));
+        }
+        
+        function loadData() {
+            const saved = localStorage.getItem('inv');
+            if (saved) items = JSON.parse(saved);
+            render();
+        }
+        
+        function beep() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 800;
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.1);
+        }
+    </script>
+</body>
+</html>
